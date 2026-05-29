@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Results (optional: remove this line if you want to track results in git)
+results/*.csv
+
+# IDE
+.vscode/
+.idea/
+
+# Project planning (internal)
+Execution_Plan.md
