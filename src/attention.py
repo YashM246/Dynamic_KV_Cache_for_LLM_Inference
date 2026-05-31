@@ -32,13 +32,15 @@ class MultiHeadAttention(nn.Module):
         # Output projection Layer to mix information from all heads back together
         self.w_o = nn.Linear(d_model, d_model)
 
-    def forward(self, q, k, v, mask=None):
+    def forward(self, q, k, v, mask=None, layer_idx=0, cache=None):
         """
             Args:
                 q -> Query Matrix of shape (batch_size, seq_len_q, d_model)
                 k -> Query Matrix of shape (batch_size, seq_len_k, d_model)
                 v -> Query Matrix of shape (batch_size, seq_len_v, d_model)
                 mask -> Optional tensor to hide future tokens
+                layer_idx -> Optional layer_idx parameter for KV Cache Updating
+                cache -> Optional parameter to pass cache
         """
 
         batch_size = q.size(0)
@@ -64,6 +66,14 @@ class MultiHeadAttention(nn.Module):
         k_heads = k_proj.view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
         v_heads = v_proj.view(batch_size, -1, self.num_heads, self.d_k).transpose(1, 2)
 
+        # Check if KV Cache is being used
+        if cache is not None:
+            # Squeeze k_heads and v_heads from (batch_size, num_heads, seq_len, d_k) to (batch_size, num_heads, head_dim)
+            # d_k = head_dim (interchangeable)
+            k_heads = k_heads[:, :, 0, :]
+            v_heads = v_heads[:, :, 0, :]
+
+            k_heads, v_heads = cache.update(layer_idx, k_heads, v_heads)
 
         ##########################################
         #  Step 2: Scaled Dot Product Attention  #
