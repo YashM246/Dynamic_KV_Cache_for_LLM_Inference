@@ -11,12 +11,12 @@ Built at GPT-2 scale: `d_model=256`, `n_heads=4`, `head_dim=64`.
 ```
 dynamic_kv_cache/
 ├── src/
-│   ├── attention.py              # Phase 1: Baseline causal attention (no cache)
-│   ├── static_kv_cache.py        # Phase 2: Static KV-Cache
-│   ├── dynamic_kv_cache.py       # Phase 3: Dynamic KV-Cache
-│   ├── compiled_kv_cache.py      # Phase 4: torch.compile integration
-│   └── paged_attention.py        # Phase 5: PagedAttention concept
-├── benchmark.py                  # Memory + latency benchmarking
+│   ├── attention.py              
+│   ├── static_kv_cache.py        
+│   ├── dynamic_kv_cache.py       
+│   ├── compiled_kv_cache.py      
+│   └── paged_attention.py        
+├── benchmark.py                  
 ├── results/
 │   └── benchmark_results.csv
 └── requirements.txt
