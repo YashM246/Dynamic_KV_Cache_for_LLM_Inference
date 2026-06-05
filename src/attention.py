@@ -161,7 +161,7 @@ def generate(model, input_seq, num_steps):
 
         times.append((end_time-start_time)*1000)
 
-    return times
+    return input_seq, times
 
 if __name__ == "__main__":
 
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     model = MultiHeadAttention(d_model= D_MODEL, num_heads= 4)
 
     # Run Generate Function
-    times = generate(model=model, input_seq=input_seq, num_steps=STEPS)
+    _, times = generate(model=model, input_seq=input_seq, num_steps=STEPS)
 
     print(f"Mean Step Time: {(sum(times)/len(times))} ms")
     print(f"Max Step Time: {max(times)} ms")
