@@ -168,6 +168,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 1
     SEQ_LEN = 10
     D_MODEL = 256
+    STEPS = 50
 
     # Create a random input_seq
     input_seq = torch.randn((BATCH_SIZE, SEQ_LEN, D_MODEL))
@@ -176,8 +177,9 @@ if __name__ == "__main__":
     model = MultiHeadAttention(d_model= D_MODEL, num_heads= 4)
 
     # Run Generate Function
-    times = generate(model=model, input_seq=input_seq, num_steps=50)
+    times = generate(model=model, input_seq=input_seq, num_steps=STEPS)
 
     print(f"Mean Step Time: {(sum(times)/len(times))} ms")
     print(f"Max Step Time: {max(times)} ms")
     print(f"Min Step Time: {min(times)} ms")
+    print(f"Total time for {STEPS} steps/generations: {sum(times)} ms")
