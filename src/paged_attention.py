@@ -44,3 +44,54 @@ class BlockTable:
 
     def read(self, block_idx):
         return self.cache_k[block_idx], self.cache_v[block_idx]
+    
+
+class PagedKVCache:
+
+    def __init__(self, block_table, block_size):
+
+        self.block_table = block_table
+        self.block_size = block_size
+
+        self.seq_map = {}
+        # Sequence Map -> seq_id: list of allocated block indices
+
+    def update(self, seq_id, position, key, value):
+
+        # Need to find which block in the sequence this position belongs to
+        block_num = position // self.block_size
+        slot = position % self.block_size
+
+        # If sequence does not have enough blocks, allocate one
+        if seq_id not in self.seq_map:  
+            self.seq_map[seq_id] = []
+
+        if len(self.seq_map[seq_id]) <= block_num:
+            new_block = self.block_table.allocate()
+            self.seq_map[seq_id].append(new_block)
+
+        # Write to the correct physical block
+        physical_block = self.seq_map[seq_id][block_num]
+
+        self.block_table.write(physical_block, slot, key, value)
+
+    def read_all(self, seq_id):
+        
+        # Collect all blocks in the sequence and concat
+
+        list_k, list_v = [], []
+        for block_idx in self.seq_map[seq_id]:
+            K, V = self.block_table.read(block_idx)
+            list_k.append(K)
+            list_v.append(V)
+        tensor_k = torch.cat(list_k, dim=1)
+        tensor_v = torch.cat(list_v, dim=1)
+
+        return tensor_k, tensor_v
+    
+    def free_sequence(self, seq_id):
+
+        for block_idx in self.seq_map[seq_id]:
+            self.block_table.free(block_idx)
+        
+        del self.seq_map[seq_id]
