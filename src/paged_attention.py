@@ -8,7 +8,7 @@ from attention import make_causal_mask
 
 class BlockTable:
 
-    def __init__(self, num_blocks, num_heads, block_size, head_dim, dtype=torch.float32):
+    def __init__(self, num_blocks, num_heads, block_size, head_dim, dtype=torch.float32, device="cpu"):
 
         # Args:
         #       num_blocks -> Number of blocks in the pool (Determines total mem capacity)
@@ -23,8 +23,8 @@ class BlockTable:
         self.dtype = dtype
 
         # Initialize K Values Tensor and a V Values Tensor
-        self.cache_k = torch.zeros((num_blocks, num_heads, block_size, head_dim), dtype=dtype)
-        self.cache_v = torch.zeros((num_blocks, num_heads, block_size, head_dim), dtype=dtype)
+        self.cache_k = torch.zeros((num_blocks, num_heads, block_size, head_dim), dtype=dtype, device=device)
+        self.cache_v = torch.zeros((num_blocks, num_heads, block_size, head_dim), dtype=dtype, device=device)
 
         # List to Track Free Blocks
         self.free_list = torch.arange(num_blocks)
@@ -113,6 +113,7 @@ def paged_generate(model, num_layers, input_seq, num_steps):
     start_time = time.perf_counter()
 
     batch_size, seq_len, d_model = input_seq.shape
+    device = input_seq.device
 
     # Our model's forward function, calculates attention and returns attention
     # scores output. It does not store the K, V value unless the cache is passed.
@@ -121,7 +122,7 @@ def paged_generate(model, num_layers, input_seq, num_steps):
     # For this, we need to reconfigure blockTable to store embeddings not KV Heads
     # We do this by using num_heads = batch_size and head_dim = d_model
     # Each slot will then store a token embedding of shape (1, d_model)
-    blockTable = BlockTable(num_blocks=NUM_BLOCKS, num_heads=batch_size, block_size=BLOCK_SIZE, head_dim=d_model)
+    blockTable = BlockTable(num_blocks=NUM_BLOCKS, num_heads=batch_size, block_size=BLOCK_SIZE, head_dim=d_model, device=device)
 
     cache = PagedKVCache(blockTable, BLOCK_SIZE)
     seq_id = 0
