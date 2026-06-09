@@ -6,7 +6,7 @@ from attention import generate
 
 class Static_KV_Cache():
 
-    def __init__(self, num_layers, batch_size, num_heads, max_seq_len, head_dim, dtype=torch.float32):
+    def __init__(self, num_layers, batch_size, num_heads, max_seq_len, head_dim, dtype=torch.float32, device="cpu"):
 
         self.num_layers = num_layers        # Number of layers in the model
         self.batch_size = batch_size        # Batch size for Inference
@@ -14,14 +14,15 @@ class Static_KV_Cache():
         self.max_seq_len = max_seq_len      # Maximum Sequence Length of Cache
         self.head_dim = head_dim            # Dimension of each Attention Head
         self.dtype = dtype                  # Data Type for Cache Tensors
+        self.device = device
 
         self.cache = {}                     # Actual KV Cache
         self.pos = 0                        # Position Pointer to track 
 
         for layer_idx in range(num_layers):
             self.cache[layer_idx] = {
-                "key": torch.zeros((batch_size, num_heads, max_seq_len, head_dim), dtype=dtype),
-                "value": torch.zeros((batch_size, num_heads, max_seq_len, head_dim), dtype=dtype)
+                "key": torch.zeros((batch_size, num_heads, max_seq_len, head_dim), dtype=dtype, device=device),
+                "value": torch.zeros((batch_size, num_heads, max_seq_len, head_dim), dtype=dtype, device=device)
             }
 
     def update(self, layer_idx, new_key, new_value):
@@ -47,9 +48,10 @@ def generate_with_static_cache(model, num_layers, input_seq, max_seq_len, num_st
     start_time = time.perf_counter()
 
     batch_size, seq_len, d_model = input_seq.shape
+    device = input_seq.device
     num_heads = model.num_heads
     head_dim = model.d_k
-    cache = Static_KV_Cache(num_layers, batch_size, num_heads, max_seq_len, head_dim)
+    cache = Static_KV_Cache(num_layers, batch_size, num_heads, max_seq_len, head_dim, device=device)
 
     for i in range(seq_len):
         output = model(input_seq[:, i:i+1, :], input_seq[:, i:i+1, :], input_seq[:, i:i+1, :], mask=None, cache=cache)
