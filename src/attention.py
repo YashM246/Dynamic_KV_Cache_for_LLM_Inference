@@ -118,6 +118,7 @@ class MultiHeadAttention(nn.Module):
 
         # Run through final linear layer to allow heads to interact with each other
         return self.w_o(attn_output)
+        # Returns a single tensor of shape (batch_size, seq_len_q, d_model)
     
 def make_causal_mask(seq_len, device):
     """
