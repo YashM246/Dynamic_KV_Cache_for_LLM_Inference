@@ -15,9 +15,6 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Results (optional: remove this line if you want to track results in git)
-results/*.csv
-
 # IDE
 .vscode/
 .idea/
